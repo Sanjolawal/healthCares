@@ -6,6 +6,7 @@ const userSchema = mongoose.Schema({
   username: {
     type: String,
     required: [true, `please provide valid username`],
+    unique: true,
   },
   phoneNumber: {
     type: String,

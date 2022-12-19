@@ -8,23 +8,37 @@ const Login = async (req, res) => {
   try {
     const myPlaintextPassword = req.body.password;
 
-    // hashing user password
-    const hash = bcrypt.compare(myPlaintextPassword);
-    const { username } = req.body;
-    const document = await user.findOne({ password: hash, username: username });
-    console.log(document);
-    if (!document) {
-      return res.status(404).json({ msg: `username or password is invalid` });
-    }
-    const token = jwt.sign({ username, password }, process.env.jwtSecret, {
-      expiresIn: `30d`,
+    const doc = await user.findOne({
+      username: req.body.username,
     });
+    if (!doc) {
+      return res.status(404).json({ msg: `username is invalid` });
+    }
+    const hashedPassword = doc.password;
+    // comparing hashed password
+    const hash = await bcrypt.compare(myPlaintextPassword, hashedPassword);
+    if (!hash) {
+      return res.status(404).json({ msg: `password is invalid` });
+    }
+    const { username } = req.body;
+    const document = await user.findOne({
+      password: hashedPassword,
+      username: username,
+    });
+
+    const token = jwt.sign(
+      { username, hashedPassword },
+      process.env.jwtSecret,
+      {
+        expiresIn: `30d`,
+      }
+    );
     const response = await user
       .aggregate([
         {
           $match: {
             username: username,
-            password: hash,
+            password: hashedPassword,
           },
         },
         {
@@ -37,11 +51,10 @@ const Login = async (req, res) => {
         },
       ])
       .exec();
-    console.log(response);
     response.forEach((each) => {
       delete each.sd;
     });
-    res.status(200).json(response[0], token);
+    res.status(200).json({ ...response[0], token: `Bearer ${token}` });
   } catch (error) {
     console.log(error);
     res.status(500).json({ msg: error.message });
