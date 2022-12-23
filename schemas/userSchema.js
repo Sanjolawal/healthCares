@@ -14,10 +14,7 @@ const userSchema = mongoose.Schema({
   },
   phoneAuthenticated: Boolean,
   whatsAppNumber: String,
-  // beneficiaryId: {
-  //   type: String,
-  //   unique: true,
-  // },
+
   beneficiary: {
     hasBeneficiary: {
       type: Boolean,
