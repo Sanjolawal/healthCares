@@ -1,4 +1,4 @@
-// importing mongooose for doctorSchema and collection setup
+// importing mongooose for doctorSchema and collection setups
 const mongoose = require(`mongoose`);
 
 // doctor schema setup
