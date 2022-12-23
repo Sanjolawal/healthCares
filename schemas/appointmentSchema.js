@@ -5,7 +5,6 @@ const mongoose = require(`mongoose`);
 const appointmentSchema = mongoose.Schema({
   appointmentId: {
     type: String,
-    unique: true,
   },
   scheduleId: {
     type: String,
@@ -58,7 +57,34 @@ const appointmentSchema = mongoose.Schema({
     type: String,
     required: [true, `please provide valid userId`],
   },
-  sd: { type: String, unique: true },
+  doctor: {
+    type: Array,
+  },
+  medicalcenter: {
+    medicalCenterId: {
+      type: String,
+    },
+    name: {
+      type: String,
+    },
+    city: {
+      type: String,
+    },
+    district: {
+      type: String,
+    },
+    description: {
+      type: String,
+    },
+    address: {
+      type: String,
+    },
+    phoneNumber: Array,
+    email: String,
+    facebookLink: String,
+    googleMaplink: String,
+    website: String,
+  },
 });
 
 const appointment = mongoose.model(`appointment`, appointmentSchema);

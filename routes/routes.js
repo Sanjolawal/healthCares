@@ -5,6 +5,7 @@ const express = require(`express`);
 const router = express.Router();
 // importing users middleware
 const { createUsers, getUsers } = require(`../middlewares/userMiddleware`);
+
 // importing beneficiary middleware
 const {
   createBeneficiary,
@@ -12,11 +13,24 @@ const {
   singleBeneficiary,
   updateBeneficiary,
 } = require(`../middlewares/beneficiaryMiddleware`);
+
 // importing appointment middleware
 const {
   createAppointment,
   updateAppointment,
+  specificAppointment,
+  allAppointments,
 } = require(`../middlewares/appointmentMiddleware`);
+
+// importing schedules middleware
+const {
+  createSchedule,
+  updateSchedule,
+  specificSchedule,
+  allSchedule,
+  deleteSchedule,
+} = require(`../middlewares/scheduleMiddleware`);
+
 // importing doctor middleware
 const {
   createDoctor,
@@ -25,6 +39,7 @@ const {
   deleteDoctor,
   allDoctor,
 } = require(`../middlewares/doctorMiddleware`);
+
 const {
   createmedicalCenter,
   singlemedicalCenter,
@@ -32,14 +47,18 @@ const {
   deletemedicalCenter,
   allmedicalCenter,
 } = require(`../middlewares/medicalCenterMiddleware`);
+
 const {
   createmedicalSpecialty,
   allmedicalSpecialty,
 } = require(`../middlewares/medicalSpecialtyMiddleware`);
+
 const { createCity, allCity } = require(`../middlewares/cityMiddleware`);
+
 const Login = require(`../middlewares/loginMiddleware`);
+
 // importing authentication/authorization middleware
-const authentication = require(`../auth`);
+const { authentication, cookieVerification } = require(`../auth`);
 
 // All routes
 // routes for user
@@ -57,20 +76,32 @@ router
 // routes for single beneficiary and updating it
 router
   .route(`/v1/beneficiaries/:beneficiaryId`)
-  .get(authentication, singleBeneficiary)
-  .patch(authentication, updateBeneficiary);
+  .get(authentication, cookieVerification, singleBeneficiary)
+  .patch(authentication, cookieVerification, updateBeneficiary);
 
 // routes for appointments
 router
   .route(`/v1/appointments/users/:userId`)
-  .get(authentication)
-  .post(authentication, createAppointment);
+  .get(authentication, specificAppointment)
+  .post(authentication, cookieVerification, createAppointment);
 
 // routes for appointment
+router.route(`/v1/appointments`).get(authentication, allAppointments);
 router
   .route(`/v1/appointments/:appointmentId`)
-  .get(authentication)
-  .patch(authentication, updateAppointment);
+  .get(authentication, cookieVerification)
+  .patch(authentication, cookieVerification, updateAppointment);
+
+// routes for schedules
+router
+  .route(`/v1/schedules`)
+  .get(authentication, allSchedule)
+  .post(authentication, cookieVerification, createSchedule);
+router
+  .route(`/v1/schedules/:scheduleId`)
+  .get(authentication, specificSchedule)
+  .patch(authentication, updateSchedule)
+  .delete(authentication, deleteSchedule);
 
 // routes for doctors
 router

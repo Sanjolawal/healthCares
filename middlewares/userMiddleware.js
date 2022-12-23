@@ -12,7 +12,7 @@ const createUsers = async (req, res) => {
 
     // hashing user password
     const hash = bcrypt.hashSync(myPlaintextPassword, 10);
-    const users = await user.find().sort({ _id: -1 }).limit(1);
+    const users = await user.find().sort({ userId: -1 }).limit(1);
 
     if (users.length === 0) {
       const newBody = {
@@ -22,16 +22,21 @@ const createUsers = async (req, res) => {
         sd: 1,
       };
       const document = await user.create(newBody);
-      const { _id, username, password } = document._doc;
+      const { userId, username, password } = document._doc;
 
       // siginig/authenticating user with jwt token for authorization
       const token = jwt.sign(
-        { _id, username, password },
+        { userId, username, password },
         process.env.jwtSecret,
         {
           expiresIn: `30d`,
         }
       );
+      res.cookie("access_token", `Bearer ${token}`, {
+        expires: new Date(Date.now() + 720 * 3600000),
+        httpOnly: true,
+        path: `/`,
+      });
       delete document._doc.password;
       delete document._doc.sd;
       // server response
@@ -46,10 +51,10 @@ const createUsers = async (req, res) => {
         sd: idNumber + 1,
       };
       const document = await user.create(newBody);
-      const { _id, username, password } = document._doc;
+      const { userId, username, password } = document._doc;
       // siginig/authenticating user with jwt token for authorization
       const token = jwt.sign(
-        { _id, username, password },
+        { userId, username, password },
         process.env.jwtSecret,
         {
           expiresIn: `30d`,

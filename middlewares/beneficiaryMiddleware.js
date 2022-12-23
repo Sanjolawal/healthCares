@@ -11,13 +11,14 @@ const createBeneficiary = async (req, res) => {
     const auth = req.headers.authorization;
     const payload = jwt.decode(auth.split(` `)[1]);
     const beneficiaries = await beneficiarys.find().sort({ _id: -1 }).limit(1);
+    console.log(beneficiaries, payload);
     if (beneficiaries.length === 0) {
-      const actualUser = await user.findById(payload._id);
+      const actualUser = await user.find({ userId: payload.userId });
       const {
         beneficiary: { beneficiaryId: beneficiary },
         userId,
         sd,
-      } = actualUser;
+      } = actualUser[0];
       const newBody = {
         ...req.body,
         account: { hasAccount: true, userId: userId },
@@ -32,12 +33,12 @@ const createBeneficiary = async (req, res) => {
     } else {
       const lastbeneficiary = beneficiaries[0].beneficiaryId;
       const idNumber = Number(lastbeneficiary.split(`-`)[1]);
-      const actualUser = await user.findById(payload._id);
+      const actualUser = await user.find({ userId: payload.userId });
       const {
         beneficiary: { beneficiaryId: beneficiary },
         userId,
         sd,
-      } = actualUser;
+      } = actualUser[0];
       const newBody = {
         ...req.body,
         account: { hasAccount: true, userId: userId },
@@ -51,7 +52,7 @@ const createBeneficiary = async (req, res) => {
       res.status(200).json(document._doc);
     }
   } catch (error) {
-    console.log(error.message);
+    console.log(error);
     res.status(500).json({ msg: error.message });
   }
 };
@@ -152,6 +153,9 @@ const singleBeneficiary = async (req, res) => {
     document.forEach((each) => {
       delete each.sd;
     });
+    if (res.locals.user.userId !== document[0].account.userId) {
+      return res.status(401).json({ msg: `Not Authorized` });
+    }
     res.status(200).json(document);
   } catch (error) {
     console.log(error);
@@ -162,16 +166,26 @@ const singleBeneficiary = async (req, res) => {
 // api for updating a single Beneficiary
 const updateBeneficiary = async (req, res) => {
   try {
+    const doc = await beneficiarys.findOne(req.params).lean();
+    if (!doc) {
+      return res.status(404).json({ msg: `beneficiary to update not found` });
+    }
+    if (res.locals.user.userId !== doc.account.userId) {
+      return res.status(401).json({ msg: `Not Authorized` });
+    }
     const document = await beneficiarys
-      .findOneAndUpdate(req.params, req.body, { new: true })
+      .findOneAndUpdate(
+        { beneficiaryId: req.params.beneficiaryId, userId: doc.userId },
+        req.body,
+        { new: true }
+      )
       .lean();
+
     const documentArray = [document];
     documentArray.forEach((each) => {
       delete each.sd;
     });
-    if (!document) {
-      return res.status(404).json({ msg: `beneficiary to update not found` });
-    }
+
     res.status(200).json(document);
   } catch (error) {
     console.log(error);

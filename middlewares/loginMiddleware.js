@@ -15,6 +15,7 @@ const Login = async (req, res) => {
       return res.status(404).json({ msg: `username is invalid` });
     }
     const hashedPassword = doc.password;
+    const userId = doc.userId;
     // comparing hashed password
     const hash = await bcrypt.compare(myPlaintextPassword, hashedPassword);
     if (!hash) {
@@ -27,12 +28,17 @@ const Login = async (req, res) => {
     });
 
     const token = jwt.sign(
-      { username, hashedPassword },
+      { userId, username, hashedPassword },
       process.env.jwtSecret,
       {
         expiresIn: `30d`,
       }
     );
+    res.cookie("access_token", `Bearer ${token}`, {
+      expires: new Date(Date.now() + 720 * 3600000),
+      httpOnly: true,
+      path: `/`,
+    });
     const response = await user
       .aggregate([
         {
