@@ -95,6 +95,14 @@ const scheduleSchema = mongoose.Schema({
   isActive: {
     type: Boolean,
   },
+  dateCreated: { type: Date },
+  dateCreatedMilliSeconds: {
+    type: Number,
+  },
+  lastUpdateDate: {
+    type: Date,
+  },
+  sid: Number,
 });
 
 const schedule = mongoose.model(`schedule`, scheduleSchema);

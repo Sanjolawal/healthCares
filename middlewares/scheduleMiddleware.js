@@ -15,6 +15,8 @@ const createSchedule = async (req, res) => {
         scheduleId: `SCH-${1}`,
         sid: 1,
         isActive: true,
+        dateCreated: Date(),
+        dateCreatedMilliSeconds: new Date().valueOf(),
       });
 
       const test = await schedule
@@ -61,6 +63,8 @@ const createSchedule = async (req, res) => {
         scheduleId: `SCH-${changedId + 1}`,
         sid: changedId + 1,
         isActive: true,
+        dateCreated: Date(),
+        dateCreatedMilliSeconds: new Date().valueOf(),
       });
 
       const test = await schedule
@@ -110,7 +114,14 @@ const createSchedule = async (req, res) => {
 const updateSchedule = async (req, res) => {
   try {
     const document = await schedule
-      .findOneAndUpdate(req.params, req.body, { new: true })
+      .findOneAndUpdate(
+        req.params,
+        {
+          ...req.body,
+          lastUpdateDate: Date(),
+        },
+        { new: true }
+      )
       .lean();
     if (!document) {
       return res.status(404).json({ msg: `schedule not found` });
@@ -142,18 +153,99 @@ const allSchedule = async (req, res) => {
     const fromDate = req.query.fromDate;
     const toDate = req.query.toDate;
     const doctorId = req.query.doctorId;
-    let limit = req.query.limit;
     const medicalCenterIdQuery = req.query.medicalCenterId;
-    const sortByQuery = req.query.sortBy;
+    // const sortBy = req.query.sortBy;
     const specialtyQuery = req.query.specialty;
     const scheduleIdquery = req.query.starting_after_object;
     const timeslot = req.query.timeslot;
+    let limit = req.query.limit;
     if (limit) {
       limit = Number(limit);
       if (limit > 100 || limit < 1) {
         limit = 30;
       }
     }
+    if (toDate) {
+      const dateMilliseconds = new Date(toDate).valueOf();
+      if (!dateMilliseconds) {
+        return res.status(200).json({ msg: `Invalid date inputed` });
+      }
+      const document = await appointment.find({
+        dateCreatedMilliSeconds: { $lte: dateMilliseconds },
+      });
+      const documents = await appointment
+        .find({
+          dateCreatedMilliSeconds: { $lte: dateMilliseconds },
+        })
+        .limit(limit ? limit : 30);
+      if (documents.length === 0) {
+        return res.status(404).json({ msg: `appointments not found` });
+      }
+      return res.status(200).json({
+        documents,
+        objectCount: document.length,
+        hasMore: document.length > documents.length ? true : false,
+      });
+    }
+    if (fromDate) {
+      const dateMilliseconds = new Date(toDate).valueOf();
+      if (!dateMilliseconds) {
+        return res.status(200).json({ msg: `Invalid date inputed` });
+      }
+      const document = await appointment.find({
+        dateCreatedMilliSeconds: { $gte: dateMilliseconds },
+      });
+      const documents = await appointment
+        .find({
+          dateCreatedMilliSeconds: { $gte: dateMilliseconds },
+        })
+        .limit(limit ? limit : 30);
+      if (documents.length === 0) {
+        return res.status(404).json({ msg: `appointments not found` });
+      }
+      return res.status(200).json({
+        documents,
+        objectCount: document.length,
+        hasMore: document.length > documents.length ? true : false,
+      });
+    }
+    // if (sortBy) {
+    //   if (sortBy === doctorId) {
+    //     const alldocument = await schedule
+    //       .find({})
+    //       .sort({ "doctor.doctorId": 1 });
+    //     if (alldocument.length === 0) {
+    //       return res.status(404).json({ msg: `schedules not found` });
+    //     }
+    //     const documents = await schedule
+    //       .find({})
+    //       .limit(limit ? limit : 0)
+    //       .sort({ "doctor.doctorId": 1 });
+
+    //     return res.status(200).json({
+    //       documents,
+    //       objectCount: alldocument.length,
+    //       hasMore: alldocument.length > documents.length ? true : false,
+    //     });
+    //   }
+    //   if (sortBy === medicalCenterId) {
+    //     const alldocument = await schedule
+    //       .find({})
+    //       .sort({ "medicalcenter.medicalCenterId": 1 });
+    //     if (alldocument.length === 0) {
+    //       return res.status(404).json({ msg: `schedules not found` });
+    //     }
+    //     const documents = await schedule
+    //       .find({})
+    //       .limit(limit ? limit : 0)
+    //       .sort({ "medicalcenter.medicalCenterId": 1 });
+    //     return res.status(200).json({
+    //       documents,
+    //       objectCount: alldocument.length,
+    //       hasMore: alldocument.length > documents.length ? true : false,
+    //     });
+    //   }
+    // }
     if (specialtyQuery) {
       const alldocument = await schedule.find({
         "doctor.specialty": specialtyQuery,

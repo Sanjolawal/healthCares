@@ -85,6 +85,14 @@ const appointmentSchema = mongoose.Schema({
     googleMaplink: String,
     website: String,
   },
+  dateCreated: { type: Date },
+  dateCreatedMilliSeconds: {
+    type: Number,
+  },
+  lastUpdateDate: {
+    type: Date,
+  },
+  aid: Number,
 });
 
 const appointment = mongoose.model(`appointment`, appointmentSchema);
