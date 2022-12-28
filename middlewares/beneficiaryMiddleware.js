@@ -83,7 +83,7 @@ const getBeneficiaries = async (req, res) => {
 
     if (!insurancePolicy) {
       const totalBeneficiaries = await beneficiarys.find({
-        sd: { $gt: beneficiaryId },
+        sd: { $gt: 0 },
       });
       let object = await beneficiarys
         .find({
@@ -111,7 +111,7 @@ const getBeneficiaries = async (req, res) => {
     // checking for isurancePolicy Query
     if (insurancePolicy) {
       const totalBeneficiaries = await beneficiarys.find({
-        sd: { $gt: beneficiaryId },
+        sd: { $gt: 0 },
         insurancePolicyId: insurancePolicy,
       });
       let object = await beneficiary

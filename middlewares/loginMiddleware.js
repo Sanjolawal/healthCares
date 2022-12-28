@@ -34,11 +34,11 @@ const Login = async (req, res) => {
         expiresIn: `30d`,
       }
     );
-    res.cookie("access_token", `Bearer ${token}`, {
-      expires: new Date(Date.now() + 720 * 3600000),
-      httpOnly: true,
-      path: `/`,
-    });
+    // res.cookie("access_token", `Bearer ${token}`, {
+    //   expires: new Date(Date.now() + 720 * 3600000),
+    //   httpOnly: true,
+    //   path: `/`,
+    // });
     const response = await user
       .aggregate([
         {

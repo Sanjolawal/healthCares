@@ -32,11 +32,11 @@ const createUsers = async (req, res) => {
           expiresIn: `30d`,
         }
       );
-      res.cookie("access_token", `Bearer ${token}`, {
-        expires: new Date(Date.now() + 720 * 3600000),
-        httpOnly: true,
-        path: `/`,
-      });
+      // res.cookie("access_token", `Bearer ${token}`, {
+      //   expires: new Date(Date.now() + 720 * 3600000),
+      //   httpOnly: true,
+      //   path: `/`,
+      // });
       delete document._doc.password;
       delete document._doc.sd;
       // server response
@@ -66,7 +66,12 @@ const createUsers = async (req, res) => {
       res.status(200).json({ ...document._doc, token: `Bearer ${token}` });
     }
   } catch (error) {
-    console.log(error.message);
+    if (error.code === 11000) {
+      return res.status(404).json({
+        msg: error.keyValue,
+        moreInfo: `Duplicate error, kindly use another value or input `,
+      });
+    }
     res.status(500).json({ msg: error.message });
   }
 };
@@ -97,7 +102,7 @@ const getUsers = async (req, res) => {
       limit = 5;
     }
     const totalUsers = await user.find({
-      sd: { $gt: idNumber },
+      sd: { $gt: 0 },
     });
 
     const object = await user

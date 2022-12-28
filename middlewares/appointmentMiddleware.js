@@ -48,6 +48,14 @@ const createAppointment = async (req, res) => {
           },
         ])
         .exec();
+      if (test[0].doctor.length === 0 || test[0].medicalcenter.length === 0) {
+        const deleteDocument = await appointment.findByIdAndDelete(
+          document._id
+        );
+        return res.status(404).json({
+          msg: `appointment cannot be created, invalid doctor or medicalcenter id inputted`,
+        });
+      }
       const newDoc = await appointment.findOneAndReplace(
         { _id: document._id },
         test[0]
@@ -91,6 +99,14 @@ const createAppointment = async (req, res) => {
           },
         ])
         .exec();
+      if (test[0].doctor.length === 0 || test[0].medicalcenter.length === 0) {
+        const deleteDocument = await appointment.findByIdAndDelete(
+          document._id
+        );
+        return res.status(404).json({
+          msg: `appointment cannot be created, invalid doctor or medicalcenter id inputted`,
+        });
+      }
       const newDoc = await appointment.findOneAndReplace(
         { _id: document._id },
         test[0]
@@ -302,190 +318,114 @@ const allAppointments = async (req, res) => {
     const fromDate = req.query.fromDate;
     const toDate = req.query.toDate;
     const limit = Number(limitQuery);
-    if (toDate) {
-      const dateMilliseconds = new Date(toDate).valueOf();
-      if (!dateMilliseconds) {
-        return res.status(200).json({ msg: `Invalid date inputed` });
-      }
-      const document = await appointment.find({
-        dateCreatedMilliSeconds: { $lte: dateMilliseconds },
-      });
-      const documents = await appointment
-        .find({
-          dateCreatedMilliSeconds: { $lte: dateMilliseconds },
-        })
-        .limit(limit ? limit : 30);
-      if (documents.length === 0) {
-        return res.status(404).json({ msg: `appointments not found` });
-      }
-      return res.status(200).json({
-        documents,
-        objectCount: document.length,
-        hasMore: document.length > documents.length ? true : false,
-      });
-    }
-    if (fromDate) {
-      const dateMilliseconds = new Date(fromDate).valueOf();
-      if (!dateMilliseconds) {
-        return res.status(200).json({ msg: `Invalid date inputed` });
-      }
 
-      const document = await appointment.find({
-        dateCreatedMilliSeconds: { $gte: dateMilliseconds },
-      });
-      const documents = await appointment
-        .find({
-          dateCreatedMilliSeconds: { $gte: dateMilliseconds },
-        })
-        .limit(limit ? limit : 30);
-      if (documents.length === 0) {
-        return res.status(404).json({ msg: `appointments not found` });
-      }
-      return res.status(200).json({
-        documents,
-        objectCount: document.length,
-        hasMore: document.length > documents.length ? true : false,
-      });
-    }
-    if (medicalCenterId) {
-      const document = await appointment.find({
-        "medicalcenter.medicalCenterId": medicalCenterId,
-      });
-      const documents = await appointment
-        .find({
+    const queriedDocument = await appointment.find({
+      $or: [
+        {
+          aid: {
+            $gt: starting_after_object
+              ? Number(starting_after_object.split(`-`)[1])
+              : starting_after_object,
+          },
+        },
+        {
+          dateCreatedMilliSeconds: {
+            $lte: toDate ? new Date(toDate).valueOf() : toDate,
+          },
+        },
+        {
+          dateCreatedMilliSeconds: {
+            $gte: fromDate ? new Date(fromDate).valueOf() : fromDate,
+          },
+        },
+        {
           "medicalcenter.medicalCenterId": medicalCenterId,
-        })
-        .limit(limit ? limit : 30);
-      if (documents.length === 0) {
-        return res.status(404).json({ msg: `appointments not found` });
-      }
-      return res.status(200).json({
-        documents,
-        objectCount: document.length,
-        hasMore: document.length > documents.length ? true : false,
-      });
-    }
-    if (starting_after_object) {
-      const aid = Number(starting_after_object.split(`-`)[1]);
-      const document = await appointment.find({
-        aid: { $gt: aid },
-      });
-      const documents = await appointment
-        .find({
-          aid: { $gt: aid },
-        })
-        .limit(limit ? limit : 30);
-      if (documents.length === 0) {
-        return res.status(404).json({ msg: `appointments not found` });
-      }
-      return res.status(200).json({
-        documents,
-        objectCount: document.length,
-        hasMore: document.length > documents.length ? true : false,
-      });
-    }
-    if (cancelled) {
-      const document = await appointment.find({
-        appointmentStatus: cancelled,
-      });
-      const documents = await appointment
-        .find({
+        },
+        {
           appointmentStatus: cancelled,
-        })
-        .limit(limit ? limit : 30);
-      if (documents.length === 0) {
-        return res.status(404).json({ msg: `appointments not found` });
-      }
-      return res.status(200).json({
-        documents,
-        objectCount: document.length,
-        hasMore: document.length > documents.length ? true : false,
-      });
-    }
-    if (rejected) {
-      const document = await appointment.find({
-        appointmentStatus: rejected,
-      });
-      const documents = await appointment
-        .find({
-          appointmentStatus: rejected,
-        })
-        .limit(limit ? limit : 30);
-      if (documents.length === 0) {
-        return res.status(404).json({ msg: `appointments not found` });
-      }
-      return res.status(200).json({
-        documents,
-        objectCount: document.length,
-        hasMore: document.length > documents.length ? true : false,
-      });
-    }
-    if (completed) {
-      const document = await appointment.find({
-        appointmentStatus: completed,
-      });
-      const documents = await appointment
-        .find({
-          appointmentStatus: completed,
-        })
-        .limit(limit ? limit : 30);
-      if (documents.length === 0) {
-        return res.status(404).json({ msg: `appointments not found` });
-      }
-      return res.status(200).json({
-        documents,
-        objectCount: document.length,
-        hasMore: document.length > documents.length ? true : false,
-      });
-    }
-    if (pending) {
-      const document = await appointment.find({
-        appointmentStatus: pending,
-      });
-      const documents = await appointment
-        .find({
-          appointmentStatus: pending,
-        })
-        .limit(limit ? limit : 30);
-      if (documents.length === 0) {
-        return res.status(404).json({ msg: `appointments not found` });
-      }
-      return res.status(200).json({
-        documents,
-        objectCount: document.length,
-        hasMore: document.length > documents.length ? true : false,
-      });
-    }
-    if (booked) {
-      const document = await appointment.find({
-        appointmentStatus: booked,
-      });
-      const documents = await appointment
-        .find({
+        },
+        {
           appointmentStatus: booked,
-        })
-        .limit(limit ? limit : 30);
-      if (documents.length === 0) {
+        },
+        {
+          appointmentStatus: rejected,
+        },
+        {
+          appointmentStatus: completed,
+        },
+        {
+          appointmentStatus: pending,
+        },
+      ],
+    });
+    if (queriedDocument.length === 0) {
+      const documents = await appointment.find({});
+      const document = await appointment.find({}).limit(limit ? limit : 30);
+      if (document.length === 0) {
         return res.status(404).json({ msg: `appointments not found` });
       }
       return res.status(200).json({
-        documents,
-        objectCount: document.length,
-        hasMore: document.length > documents.length ? true : false,
+        document,
+        objectCount: documents.length,
+        hasMore: documents.length > document.length ? true : false,
       });
     }
-    const documents = await appointment.find({});
-    const allDoc = await appointment.find({}).limit(limit ? limit : 30);
-    if (!allDoc) {
-      res.status(404).json({ msg: `appointments not found` });
+    const queriedDocuments = await appointment
+      .find({
+        $or: [
+          {
+            aid: {
+              $gt: starting_after_object
+                ? Number(starting_after_object.split(`-`)[1])
+                : starting_after_object,
+            },
+          },
+          {
+            dateCreatedMilliSeconds: {
+              $lte: toDate ? new Date(toDate).valueOf() : toDate,
+            },
+          },
+          {
+            dateCreatedMilliSeconds: {
+              $gte: fromDate ? new Date(fromDate).valueOf() : fromDate,
+            },
+          },
+          {
+            "medicalcenter.medicalCenterId": medicalCenterId,
+          },
+          {
+            appointmentStatus: cancelled,
+          },
+          {
+            appointmentStatus: booked,
+          },
+          {
+            appointmentStatus: rejected,
+          },
+          {
+            appointmentStatus: completed,
+          },
+          {
+            appointmentStatus: pending,
+          },
+        ],
+      })
+      .limit(limit ? limit : 30);
+    if (queriedDocuments.length === 0) {
+      return res.status(404).json({ msg: `appointments not found` });
     }
-    res.status(200).json({
-      allDoc,
-      objectCount: documents.length,
-      hasMore: documents.length > allDoc.length ? true : false,
+    return res.status(200).json({
+      queriedDocuments,
+      objectCount: queriedDocument.length,
+      hasMore: queriedDocument.length > queriedDocuments.length ? true : false,
     });
   } catch (error) {
     console.log(error);
+    if (error.path) {
+      return res.status(404).json({
+        msg: `${error.path} field as ${error.kind} casting failed, check ${error.path} input or value again`,
+      });
+    }
     res.status(500).json({ msg: error.message });
   }
 };

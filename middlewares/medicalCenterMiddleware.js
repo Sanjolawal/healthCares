@@ -113,7 +113,7 @@ const allmedicalCenter = async (req, res) => {
     // logic checking for city query parameters
     if (!city) {
       const totalmedicalCenter = await medicalCenter.find({
-        sd: { $gt: medicalCenterId },
+        sd: { $gt: 0 },
       });
       let object = await medicalCenter
         .find({
@@ -141,7 +141,7 @@ const allmedicalCenter = async (req, res) => {
     // logic checking for city query parameters
     if (city) {
       const totalmedicalCenter = await medicalCenter.find({
-        sd: { $gt: medicalCenterId },
+        sd: { $gt: 0 },
         city: city,
       });
       let object = await medicalCenter

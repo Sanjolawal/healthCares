@@ -58,7 +58,7 @@ const { createCity, allCity } = require(`../middlewares/cityMiddleware`);
 const Login = require(`../middlewares/loginMiddleware`);
 
 // importing authentication/authorization middleware
-const { authentication, cookieVerification } = require(`../auth`);
+const authentication = require(`../auth`);
 
 // All routes
 // routes for user
@@ -76,27 +76,27 @@ router
 // routes for single beneficiary and updating it
 router
   .route(`/v1/beneficiaries/:beneficiaryId`)
-  .get(authentication, cookieVerification, singleBeneficiary)
-  .patch(authentication, cookieVerification, updateBeneficiary);
+  .get(authentication, singleBeneficiary)
+  .patch(authentication, updateBeneficiary);
 
 // routes for appointments
 router
   .route(`/v1/appointments/users/:userId`)
   .get(authentication, specificAppointment)
-  .post(authentication, cookieVerification, createAppointment);
+  .post(authentication, createAppointment);
 
 // routes for appointment
 router.route(`/v1/appointments`).get(authentication, allAppointments);
 router
   .route(`/v1/appointments/:appointmentId`)
-  .get(authentication, cookieVerification)
-  .patch(authentication, cookieVerification, updateAppointment);
+  .get(authentication)
+  .patch(authentication, updateAppointment);
 
 // routes for schedules
 router
   .route(`/v1/schedules`)
   .get(authentication, allSchedule)
-  .post(authentication, cookieVerification, createSchedule);
+  .post(authentication, createSchedule);
 router
   .route(`/v1/schedules/:scheduleId`)
   .get(authentication, specificSchedule)
